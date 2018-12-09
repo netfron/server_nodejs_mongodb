@@ -36,19 +36,19 @@ var Users;
 function connectDB() {
     var dbUrl = "mongodb://localhost/MyApp";
     mongoose.connect(
-        dbUrl,{ useNewUrlParser: true }, function(err,db){
+        dbUrl,{ useNewUrlParser: true }, function(err, client){
             if(err){
                 console.log(err);
             }
             else {
                 console.log('connected to '+ dbUrl);
-                db.close();
+                //mongoose.Promise = global.Promise;
+                db = mongoose.connection;
+                db.on('error', console.error.bind(console, 'connection error:'));
+                db.once('open', function() {});                
+                //db = client.db('MyApp');
             }
     });
-    //mongoose.Promise = global.Promise;
-    db = mongoose.connection;
-    db.on('error', console.error.bind(console, 'connection error:'));
-    db.once('open', function() {});
     
     //load model
     Users = require('./models/users');
@@ -78,9 +78,8 @@ router.route('/process/product').get(function (req, res) {
 
 var authUser = function (id, password, callback) {
     console.log('authUser 호출됨.', id, password);
-
+    
     Users.find({"id":id,"password":password}).exec(function(err, result) {
-        console.log(result);
 
         if (err) callback(err, null);
         if (result.length > 0) {
@@ -110,7 +109,6 @@ router.route('/process/login').post(function (req, res) {
                 if (err) {
                     throw err;
                 }
-                console.log(docs);
 
                 if (docs) {
                     console.dir(docs);
