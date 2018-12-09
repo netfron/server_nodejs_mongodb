@@ -34,15 +34,16 @@ app.use(expressSession({
 var db;
 
 function connectDB() {
-    var dbUrl = "mongodb://localhost/MyApp";
-    MongoClient.connect(dbUrl,{ useNewUrlParser: true },function(err,db){
+    var dbUrl = "mongodb://localhost/";
+    MongoClient.connect(dbUrl,{ useNewUrlParser: true },function(err,client){
         if(err){
             console.log(err);
         }
         else {
             console.log('connected to '+ dbUrl);
-            db.close();
+            db = client.db('MyApp');
         }
+
     });
 }
 
@@ -67,11 +68,11 @@ router.route('/process/product').get(function (req, res) {
     }
 });
 
-var authUser = function (database, id, password, callback) {
+var authUser = function (db, id, password, callback) {
     console.log('authUser 호출됨.', id, password);
 
     //컬렉션 참조
-    var users = database.collection('Users');
+    var users = db.collection('Users');
     console.log(users);
 
     //아이디와 비밀번호를 사용해서 db 검색
@@ -104,7 +105,7 @@ router.route('/process/login').post(function (req, res) {
         console.log('이미 로그인 되어 상품 페이지로 이동 함.');
         res.redirect('/public/product.html');
     } else {
-        if (db) {
+        if (db) {            
             authUser(db, paramId, paramPassword, function (err, docs) {
                 if (err) {
                     throw err;
